@@ -1,92 +1,195 @@
-/* =================== GENERALES =================== */
-body {
-  font-family: Arial;
-  padding: 20px;
-  background: #f0f0f0;
-  text-transform: uppercase;
+/* ---------------- ESTILOS BASE ---------------- */
+* {
+    font-family: 'Open Sans', sans-serif !important;
+    text-transform: uppercase;
+    box-sizing: border-box; /* Asegura que padding y border no aumenten el tamaño final */
 }
 
+body {
+    padding: 20px;
+    background: #eef1f4;
+}
+
+#mainContainer {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+}
+
+/* ---------------- FORMULARIO ---------------- */
+form {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    /* Se hace más flexible, pero con un ancho máximo para portátiles */
+    width: 360px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    flex-shrink: 0; /* Asegura que el formulario no se encoja en escritorio */
+}
+
+form h2, form h3 {
+    margin-bottom: 10px;
+}
+
+form label {
+    display: block;
+    margin-top: 12px;
+    font-weight: 600;
+}
+
+form input[type="text"],
+form input[type="number"] {
+    width: 100%;
+    padding: 7px;
+    margin-top: 4px;
+    font-size: 15px;
+    border: 2px solid #bbb;
+    border-radius: 6px;
+    text-transform: none;
+}
+
+button {
+    cursor: pointer;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.btn-primary { background:#121c24; color:white; }
+.btn-secondary { background:#1f2f3a; color:white; }
+.btn-light { background:#d0d5d9; }
+
+/* ---------------- PREVIEW ---------------- */
 #previewWrapper {
-  width: 900px;
-  margin-top: 20px;
+    /* Permitir que el wrapper ocupe el espacio restante */
+    flex-grow: 1;
+    width: 100%; /* Asegura que el contenedor del preview use el ancho disponible */
+    max-width: 900px; /* Limite en escritorio */
+    margin-top: 20px;
+    display: flex;
+    justify-content: center; /* Centra el preview si el wrapper es más grande */
 }
 
 #preview {
-  position: relative;
-  width: 900px;
-  height: 1350px;
-  background-image: url('presupuesto.jpg');
-  background-size: cover;
-  background-position: center;
-  display: none;
-  margin-top: 20px;
-  border: 1px solid #000;
+    position: relative;
+    /* Dimensiones fijas para que html2canvas genere el PDF correctamente */
+    width: 900px; 
+    height: 1350px;
+    background-image: url('presupuesto.jpg'); /* ¡Asegúrate de tener esta imagen! */
+    background-size: cover;
+    background-position: center;
+    display: none;
+    border: 1px solid #000;
 }
 
 .campo {
-  position: absolute;
-  font-size: 16px;      /* más chico */
-  color: #000;
-  font-weight: 600;
+    position: absolute;
+    color: #121c24;
 }
 
-/* =================== POSICIONES =================== */
+.campo.small { font-size: 16px; font-weight: 600; }
+.campo.normal { font-size: 18px; font-weight: 400; }
+
+/* DEST LABEL y POSICIONES */
+#destLabel {
+    position: absolute;
+    top: 330px; left: 600px;
+    font-size: 18px; font-weight: bold; color: #121c24;
+}
+
 #outPresupuesto { top: 355px; left: 80px; }
-#outFecha       { top: 385px; left: 80px; }
-#outValido      { top: 415px; left: 80px; }
+#outFecha { top: 385px; left: 80px; }
+#outValido { top: 415px; left: 80px; }
+#outDestNombre { top: 355px; left: 600px; }
+#outDestTel { top: 385px; left: 600px; }
 
-#outDestNombre  { top: 355px; left: 600px; }
-#outDestTel     { top: 385px; left: 600px; }
-
-/* =================== TABLA =================== */
+/* TABLA */
 #tablaPreview {
-  position: absolute;
-  top: 500px;
-  left: 80px;
-  width: 750px;
-  font-size: 14px; /* más chico */
+    position: absolute;
+    top: 500px; left: 80px;
+    width: 750px;
 }
 
-/* ENCABEZADO */
-.tablaHeader {
-  display: flex;
-  padding: 6px 0;
-  margin-bottom: 4px;
-  background: #121c24;
-  color: white;
-  font-weight: bold;
+#tablaPreview table {
+    width: 100%; border-collapse: collapse;
+    background: rgba(255,255,255,0.85);
+    font-size: 14px; table-layout: fixed;
 }
 
-.hDesc { width: 450px; }
-.hCant { width: 150px; text-align: center; }
-.hPrecio { width: 150px; text-align: right; }
-
-/* FILAS */
-.filaTabla {
-  display: flex;
-  border-bottom: 1px solid #000;
-  padding: 4px 0;
+#tablaPreview th, #tablaPreview td {
+    border: 1px solid #121c24;
+    padding: 4px 6px; font-size: 14px;
 }
 
-.celdaDescripcion { width: 450px; }
-.celdaCantidad { width: 150px; text-align: center; }
-.celdaPrecio { width: 150px; text-align: right; }
-
-/* =================== TOTALES =================== */
-.totalesBox {
-  position: absolute;
-  top: 760px;
-  left: 620px;
-  width: 240px;
-  padding: 10px;
-  border: 2px solid #000;
-  font-size: 14px; /* más chico */
-  background: rgba(255,255,255,0.8);
+#tablaPreview th {
+    background: #121c24; color: white;
+    text-align: center; font-weight: 700;
 }
 
-.totLine {
-  display: flex;
-  justify-content: space-between;
-  font-weight: bold;
-  margin-bottom: 6px;
+.col-desc { width: 60%; text-align:left; white-space:normal; word-break:break-word; }
+.col-cant { width: 20%; text-align:center; }
+.col-pre { width: 20%; text-align:right; }
+
+/* TOTALES */
+#totalesBox {
+    position: absolute;
+    top: 760px; left: 620px;
+    width: 240px;
+}
+
+#totalesBox table {
+    width: 100%; border-collapse: collapse;
+    background: rgba(255,255,255,0.9);
+    font-size: 16px;
+}
+
+#totalesBox th, #totalesBox td {
+    border: 2px solid #121c24;
+    padding: 6px;
+}
+
+#totalesBox th {
+    background:#121c24; color:white;
+}
+
+/* ------------------------------------------------------------------
+   📱📱📱 RESPONSIVE PARA CELULARES Y TABLETS 📱📱📱
+   ------------------------------------------------------------------*/
+@media (max-width: 940px) { /* El ancho de 940px es un buen punto para cambiar */
+
+    body {
+        padding: 10px;
+    }
+
+    #mainContainer {
+        flex-direction: column; /* Form arriba, preview abajo */
+        gap: 20px;
+        align-items: center;
+    }
+
+    form {
+        width: 100%;
+        max-width: 500px; /* Permite que el formulario sea más ancho */
+    }
+
+    /* --- Gestión de la escala del Preview --- */
+    #previewWrapper {
+        width: 100%;
+        overflow-x: auto; /* Permite desplazamiento horizontal si el preview no cabe */
+        padding-bottom: 20px;
+        justify-content: flex-start; /* Alinea a la izquierda en lugar de centrar */
+    }
+
+    #preview {
+        /* Se mantiene el tamaño fijo de 900x1350px, permitiendo scroll horizontal en móviles */
+        transform: none; 
+        margin-bottom: 0;
+    }
+}
+
+@media (max-width: 480px) {
+      /* Estilos opcionales para pantallas muy pequeñas si es necesario */
 }
