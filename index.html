@@ -1,471 +1,472 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Generar Presupuesto PDF</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generar Presupuesto PDF</title>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-  <!-- OPEN SANS -->
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-  <style>
-    * {
-      font-family: 'Open Sans', sans-serif !important;
-      text-transform: uppercase;
-    }
+    <style>
+        /* ---------------- ESTILOS BASE ---------------- */
+        * {
+            font-family: 'Open Sans', sans-serif !important;
+            text-transform: uppercase;
+            box-sizing: border-box; /* Asegura que padding y border no aumenten el tamaño final */
+        }
 
-    body {
-      padding: 20px;
-      background: #eef1f4;
-    }
+        body {
+            padding: 20px;
+            background: #eef1f4;
+        }
 
-    #mainContainer {
-      display: flex;
-      gap: 40px;
-      align-items: flex-start;
-    }
+        #mainContainer {
+            display: flex;
+            gap: 40px;
+            align-items: flex-start;
+        }
 
-    /* ---------------- FORMULARIO ---------------- */
-    form {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      width: 360px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-    }
+        /* ---------------- FORMULARIO ---------------- */
+        form {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            /* Se hace más flexible, pero con un ancho máximo para portátiles */
+            width: 360px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            flex-shrink: 0; /* Asegura que el formulario no se encoja en escritorio */
+        }
 
-    form h2, form h3 {
-      margin-bottom: 10px;
-    }
+        form h2, form h3 {
+            margin-bottom: 10px;
+        }
 
-    form label {
-      display: block;
-      margin-top: 12px;
-      font-weight: 600;
-    }
+        form label {
+            display: block;
+            margin-top: 12px;
+            font-weight: 600;
+        }
 
-    form input[type="text"],
-    form input[type="number"] {
-      width: 100%;
-      padding: 7px;
-      margin-top: 4px;
-      font-size: 15px;
-      border: 2px solid #bbb;
-      border-radius: 6px;
-      text-transform: none;
-    }
+        form input[type="text"],
+        form input[type="number"] {
+            width: 100%;
+            padding: 7px;
+            margin-top: 4px;
+            font-size: 15px;
+            border: 2px solid #bbb;
+            border-radius: 6px;
+            text-transform: none;
+        }
 
-    button {
-      cursor: pointer;
-      padding: 8px 14px;
-      border: none;
-      border-radius: 6px;
-      font-size: 15px;
-      font-weight: 600;
-      margin-top: 8px;
-    }
+        button {
+            cursor: pointer;
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
 
-    .btn-primary { background:#121c24; color:white; }
-    .btn-secondary { background:#1f2f3a; color:white; }
-    .btn-light { background:#d0d5d9; }
+        .btn-primary { background:#121c24; color:white; }
+        .btn-secondary { background:#1f2f3a; color:white; }
+        .btn-light { background:#d0d5d9; }
 
-    /* ---------------- PREVIEW ---------------- */
-    #previewWrapper {
-      width: 900px;
-      margin-top: 20px;
-    }
+        /* ---------------- PREVIEW ---------------- */
+        #previewWrapper {
+            /* Permitir que el wrapper ocupe el espacio restante */
+            flex-grow: 1;
+            width: 100%; /* Asegura que el contenedor del preview use el ancho disponible */
+            max-width: 900px; /* Limite en escritorio */
+            margin-top: 20px;
+            display: flex;
+            justify-content: center; /* Centra el preview si el wrapper es más grande */
+        }
 
-    #preview {
-      position: relative;
-      width: 900px;
-      height: 1350px;
-      background-image: url('presupuesto.jpg');
-      background-size: cover;
-      background-position: center;
-      display: none;
-      border: 1px solid #000;
-    }
+        #preview {
+            position: relative;
+            /* Dimensiones fijas para que html2canvas genere el PDF correctamente */
+            width: 900px; 
+            height: 1350px;
+            background-image: url('presupuesto.jpg');
+            background-size: cover;
+            background-position: center;
+            display: none;
+            border: 1px solid #000;
+            /* Aplicamos una pequeña escala por defecto si es necesario, aunque lo manejaremos mejor con media queries */
+        }
 
-    .campo {
-      position: absolute;
-      color: #121c24;
-    }
+        .campo {
+            position: absolute;
+            color: #121c24;
+        }
 
-    .campo.small { font-size: 16px; font-weight: 600; }
-    .campo.normal { font-size: 18px; font-weight: 400; }
+        .campo.small { font-size: 16px; font-weight: 600; }
+        .campo.normal { font-size: 18px; font-weight: 400; }
 
-    /* DEST LABEL */
-    #destLabel {
-      position: absolute;
-      top: 330px;
-      left: 600px;
-      font-size: 18px;
-      font-weight: bold;
-      color: #121c24;
-    }
+        /* DEST LABEL y POSICIONES */
+        #destLabel {
+            position: absolute;
+            top: 330px; left: 600px;
+            font-size: 18px; font-weight: bold; color: #121c24;
+        }
 
-    /* POSICIONES */
-    #outPresupuesto { top: 355px; left: 80px; }
-    #outFecha       { top: 385px; left: 80px; }
-    #outValido      { top: 415px; left: 80px; }
+        #outPresupuesto { top: 355px; left: 80px; }
+        #outFecha { top: 385px; left: 80px; }
+        #outValido { top: 415px; left: 80px; }
+        #outDestNombre { top: 355px; left: 600px; }
+        #outDestTel { top: 385px; left: 600px; }
 
-    #outDestNombre  { top: 355px; left: 600px; }
-    #outDestTel     { top: 385px; left: 600px; }
+        /* TABLA */
+        #tablaPreview {
+            position: absolute;
+            top: 500px; left: 80px;
+            width: 750px;
+        }
 
-    /* TABLA */
-    #tablaPreview {
-      position: absolute;
-      top: 500px;
-      left: 80px;
-      width: 750px;
-    }
+        #tablaPreview table {
+            width: 100%; border-collapse: collapse;
+            background: rgba(255,255,255,0.85);
+            font-size: 14px; table-layout: fixed;
+        }
 
-    #tablaPreview table {
-      width: 100%;
-      border-collapse: collapse;
-      background: rgba(255,255,255,0.85);
-      font-size: 14px;
-      table-layout: fixed;
-    }
+        #tablaPreview th, #tablaPreview td {
+            border: 1px solid #121c24;
+            padding: 4px 6px; font-size: 14px;
+        }
 
-    #tablaPreview th, #tablaPreview td {
-      border: 1px solid #121c24;
-      padding: 4px 6px;
-      font-size: 14px;
-    }
+        #tablaPreview th {
+            background: #121c24; color: white;
+            text-align: center; font-weight: 700;
+        }
 
-    #tablaPreview th {
-      background: #121c24;
-      color: white;
-      text-align: center;
-      font-weight: 700;
-    }
+        .col-desc { width: 60%; text-align:left; white-space:normal; word-break:break-word; }
+        .col-cant { width: 20%; text-align:center; }
+        .col-pre { width: 20%; text-align:right; }
 
-    .col-desc { width: 60%; text-align:left; white-space:normal; word-break:break-word; }
-    .col-cant { width: 20%; text-align:center; }
-    .col-pre  { width: 20%; text-align:right; }
+        /* TOTALES */
+        #totalesBox {
+            position: absolute;
+            top: 760px; left: 620px;
+            width: 240px;
+        }
 
-    /* TOTALES */
-    #totalesBox {
-      position: absolute;
-      top: 760px;
-      left: 620px;
-      width: 240px;
-    }
+        #totalesBox table {
+            width: 100%; border-collapse: collapse;
+            background: rgba(255,255,255,0.9);
+            font-size: 16px;
+        }
 
-    #totalesBox table {
-      width: 100%;
-      border-collapse: collapse;
-      background: rgba(255,255,255,0.9);
-      font-size: 16px;
-    }
+        #totalesBox th, #totalesBox td {
+            border: 2px solid #121c24;
+            padding: 6px;
+        }
 
-    #totalesBox th, #totalesBox td {
-      border: 2px solid #121c24;
-      padding: 6px;
-    }
+        #totalesBox th {
+            background:#121c24; color:white;
+        }
 
-    #totalesBox th {
-      background:#121c24;
-      color:white;
-    }
+        /* ------------------------------------------------------------------
+           📱📱📱 RESPONSIVE PARA CELULARES Y TABLETS 📱📱📱
+           ------------------------------------------------------------------*/
+        @media (max-width: 940px) { /* El ancho de 940px es un buen punto para cambiar */
 
-    /* ------------------------------------------------------------------
-       📱📱📱 RESPONSIVE PARA CELULARES 📱📱📱
-       ------------------------------------------------------------------*/
-    @media (max-width: 900px) {
+            body {
+                padding: 10px;
+            }
 
-      #mainContainer {
-        flex-direction: column;      /* Form arriba, preview abajo */
-        gap: 20px;
-        align-items: center;
-      }
+            #mainContainer {
+                flex-direction: column; /* Form arriba, preview abajo */
+                gap: 20px;
+                align-items: center;
+            }
 
-      form {
-        width: 100%;
-        max-width: 400px;
-      }
+            form {
+                width: 100%;
+                max-width: 500px; /* Permite que el formulario sea más ancho */
+            }
 
-      #previewWrapper {
-        width: 100%;
-        display: flex;
-        justify-content: center;
-      }
+            /* --- Gestión de la escala del Preview --- */
+            #previewWrapper {
+                width: 100%;
+                overflow-x: auto; /* Permite desplazamiento horizontal si el preview no cabe */
+                padding-bottom: 20px;
+                justify-content: flex-start; /* Alinea a la izquierda en lugar de centrar */
+            }
 
-      /* Escalar el preview completo */
-      #preview {
-        transform: scale(0.45);
-        transform-origin: top center;
-        margin-bottom: -500px; /* Ajusta el espacio vacío */
-      }
-    }
+            #preview {
+                /* Quitamos la escala para que el preview mantenga sus dimensiones originales (900x1350px) 
+                   y se vea completo con un scroll horizontal si es necesario.
+                   El usuario puede hacer zoom o el scroll para ver el documento antes de descargarlo. */
+                transform: none; 
+                margin-bottom: 0;
+            }
+        }
 
-    @media (max-width: 600px) {
-      #preview {
-        transform: scale(0.35);
-        margin-bottom: -700px;
-      }
-    }
-
-    @media (max-width: 450px) {
-      #preview {
-        transform: scale(0.30);
-        margin-bottom: -800px;
-      }
-    }
-
-  </style>
+        /* Ajustes menores para pantallas muy pequeñas, si la estrategia de scroll horizontal no es suficiente */
+        @media (max-width: 480px) {
+             #previewWrapper {
+                /* Aquí puedes volver a usar la escala si el scroll horizontal no es la experiencia deseada
+                   y prefieres que el documento se vea completamente encajado, aunque más pequeño. */
+                /*
+                transform: scale(0.45);
+                transform-origin: top left;
+                width: 900px * 0.45; 
+                */
+             }
+        }
+    </style>
 </head>
 <body>
 
 <div id="mainContainer">
 
-  <!-- ---------------- FORMULARIO ---------------- -->
-  <form id="form">
-    <h2>Formulario del Presupuesto</h2>
+    <form id="form">
+        <h2>Formulario del Presupuesto</h2>
 
-    <label>Presupuesto N°:</label>
-    <input type="text" id="presupuesto">
+        <label>Presupuesto N°:</label>
+        <input type="text" id="presupuesto">
 
-    <label>Fecha:</label>
-    <input type="text" id="fecha">
+        <label>Fecha:</label>
+        <input type="text" id="fecha">
 
-    <label>Válido Hasta:</label>
-    <input type="text" id="valido">
+        <label>Válido Hasta:</label>
+        <input type="text" id="valido">
 
-    <label>Nombre Destinatario:</label>
-    <input type="text" id="destNombre">
+        <label>Nombre Destinatario:</label>
+        <input type="text" id="destNombre">
 
-    <label>Teléfono Destinatario:</label>
-    <input type="text" id="destTel">
+        <label>Teléfono Destinatario:</label>
+        <input type="text" id="destTel">
 
-    <h3>Tabla</h3>
+        <h3>Tabla</h3>
 
-    <label>Descripción:</label>
-    <input type="text" id="descInput">
+        <label>Descripción:</label>
+        <input type="text" id="descInput">
 
-    <label>Cantidad:</label>
-    <input type="number" id="cantInput">
+        <label>Cantidad:</label>
+        <input type="number" id="cantInput">
 
-    <label>Precio:</label>
-    <input type="number" id="precioInput">
+        <label>Precio:</label>
+        <input type="number" id="precioInput">
 
-    <button type="button" class="btn-primary" id="btnAdd">+ Agregar fila</button>
-    <button type="button" class="btn-light" id="btnClearFilas">Limpiar filas</button>
+        <button type="button" class="btn-primary" id="btnAdd">+ Agregar fila</button>
+        <button type="button" class="btn-light" id="btnClearFilas">Limpiar filas</button>
 
-    <h3>Totales</h3>
+        <h3>Totales</h3>
 
-    <label>Total:</label>
-    <input type="text" id="total">
+        <label>Total:</label>
+        <input type="text" id="total">
 
-    <label>Entrega:</label>
-    <input type="text" id="entrega">
+        <label>Entrega:</label>
+        <input type="text" id="entrega">
 
-    <label>Saldo:</label>
-    <input type="text" id="saldo">
+        <label>Saldo:</label>
+        <input type="text" id="saldo">
 
-    <label>Cuotas:</label>
-    <input type="text" id="cuotas">
+        <label>Cuotas:</label>
+        <input type="text" id="cuotas">
 
-    <br><br>
+        <br><br>
 
-    <button type="button" class="btn-secondary" id="btnFill">Auto rellenar</button>
-    <button type="button" class="btn-light" id="btnClearForm">Limpiar campos</button>
+        <button type="button" class="btn-secondary" id="btnFill">Auto rellenar</button>
+        <button type="button" class="btn-light" id="btnClearForm">Limpiar campos</button>
 
-    <br><br>
+        <br><br>
 
-    <button type="button" class="btn-primary" id="btnGenerar">Generar vista previa</button>
-    <button id="btnPDF" type="button" class="btn-secondary" style="display:none">Descargar PDF</button>
-  </form>
+        <button type="button" class="btn-primary" id="btnGenerar">Generar vista previa</button>
+        <button id="btnPDF" type="button" class="btn-secondary" style="display:none">Descargar PDF</button>
+    </form>
 
-  <!-- ---------------- PREVIEW ---------------- -->
-  <div id="previewWrapper">
-    <div id="preview">
-      <div id="outPresupuesto" class="campo small"></div>
-      <div id="outFecha" class="campo small"></div>
-      <div id="outValido" class="campo small"></div>
+    <div id="previewWrapper">
+        <div id="preview">
+            <div id="outPresupuesto" class="campo small"></div>
+            <div id="outFecha" class="campo small"></div>
+            <div id="outValido" class="campo small"></div>
 
-      <div id="destLabel">Destinatario:</div>
+            <div id="destLabel">Destinatario:</div>
 
-      <div id="outDestNombre" class="campo normal"></div>
-      <div id="outDestTel" class="campo normal"></div>
+            <div id="outDestNombre" class="campo normal"></div>
+            <div id="outDestTel" class="campo normal"></div>
 
-      <div id="tablaPreview"></div>
+            <div id="tablaPreview"></div>
 
-      <div id="totalesBox">
-        <table>
-          <tbody>
-            <tr><td>Total</td><td id="outTotal"></td></tr>
-            <tr><td>Entrega</td><td id="outEntrega"></td></tr>
-            <tr><td>Saldo</td><td id="outSaldo"></td></tr>
-            <tr><td>Cuotas</td><td id="outCuotas"></td></tr>
-          </tbody>
-        </table>
-      </div>
+            <div id="totalesBox">
+                <table>
+                    <tbody>
+                        <tr><td>Total</td><td id="outTotal"></td></tr>
+                        <tr><td>Entrega</td><td id="outEntrega"></td></tr>
+                        <tr><td>Saldo</td><td id="outSaldo"></td></tr>
+                        <tr><td>Cuotas</td><td id="outCuotas"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-  </div>
 
 </div>
 
 <script>
-  let filas = []
+    let filas = []
 
-  const inputsSecuencia = [
-    "presupuesto","fecha","valido",
-    "destNombre","destTel",
-    "descInput","cantInput","precioInput",
-    "total","entrega","saldo","cuotas"
-  ]
-
-  // ---- ENTER pasa al siguiente campo ----
-  inputsSecuencia.forEach((id, i) => {
-    const inp = document.getElementById(id)
-    inp.addEventListener("keydown", e => {
-      if (e.key === "Enter") {
-        e.preventDefault()
-        const next = document.getElementById(inputsSecuencia[i+1])
-        if (next) next.focus()
-      }
-    })
-  })
-
-  // ---- FILAS ----
-  const btnAdd = document.getElementById('btnAdd')
-  const btnClearFilas = document.getElementById('btnClearFilas')
-
-  btnAdd.addEventListener('click', () => {
-    const desc = descInput.value.trim()
-    const cant = cantInput.value
-    const precio = precioInput.value
-    if (!desc && !cant && !precio) return
-
-    filas.push({ desc, cant, precio })
-
-    descInput.value = ''
-    cantInput.value = ''
-    precioInput.value = ''
-    descInput.focus()
-
-    renderTabla()
-  })
-
-  btnClearFilas.addEventListener('click', () => {
-    filas = []
-    renderTabla()
-  })
-
-  function renderTabla() {
-    const tablaCont = document.getElementById('tablaPreview')
-    tablaCont.innerHTML = ''
-
-    const table = document.createElement('table')
-    table.innerHTML = `
-      <thead>
-        <tr>
-          <th class="col-desc">Descripción del tratamiento a realizar</th>
-          <th class="col-cant">Cantidad</th>
-          <th class="col-pre">Precio</th>
-        </tr>
-      </thead>
-    `
-
-    const tbody = document.createElement('tbody')
-
-    if (filas.length === 0) {
-      tbody.innerHTML = `
-        <tr>
-          <td class="col-desc">&nbsp;</td>
-          <td class="col-cant">&nbsp;</td>
-          <td class="col-pre">&nbsp;</td>
-        </tr>
-      `
-    } else {
-      filas.forEach(f => {
-        const tr = document.createElement('tr')
-        tr.innerHTML = `
-          <td class="col-desc">${f.desc}</td>
-          <td class="col-cant">${f.cant}</td>
-          <td class="col-pre">${f.precio}</td>
-        `
-        tbody.appendChild(tr)
-      })
-    }
-
-    table.appendChild(tbody)
-    tablaCont.appendChild(table)
-  }
-
-  // ---- LIMPIAR FORMULARIO COMPLETO ----
-  document.getElementById("btnClearForm").addEventListener("click", () => {
-    document.getElementById("form").reset()
-    filas = []
-    renderTabla()
-  })
-
-  // ---- AUTO RELLENAR ----
-  document.getElementById("btnFill").addEventListener("click", () => {
-    presupuesto.value = "254"
-    fecha.value = "28/11/2025"
-    valido.value = "15/12/2025"
-    destNombre.value = "Juan Pérez"
-    destTel.value = "1122334455"
-
-    filas = [
-      { desc: "Limpieza y desinfección del equipo", cant: "1", precio: "5000" },
-      { desc: "Cambio de repuestos internos", cant: "2", precio: "8000" }
+    const inputsSecuencia = [
+        "presupuesto","fecha","valido",
+        "destNombre","destTel",
+        "descInput","cantInput","precioInput",
+        "total","entrega","saldo","cuotas"
     ]
 
-    total.value   = "21000"
-    entrega.value = "7000"
-    saldo.value   = "14000"
-    cuotas.value  = "3 cuotas de $4700"
+    // ---- ENTER pasa al siguiente campo ----
+    inputsSecuencia.forEach((id, i) => {
+        const inp = document.getElementById(id)
+        inp.addEventListener("keydown", e => {
+            if (e.key === "Enter") {
+                e.preventDefault()
+                const next = document.getElementById(inputsSecuencia[i+1])
+                if (next) next.focus()
+            }
+        })
+    })
 
-    renderTabla()
-  })
+    // ---- FILAS ----
+    const btnAdd = document.getElementById('btnAdd')
+    const btnClearFilas = document.getElementById('btnClearFilas')
 
-  // ---- GENERAR PREVIEW ----
-  document.getElementById('btnGenerar').addEventListener('click', () => {
+    btnAdd.addEventListener('click', () => {
+        const desc = descInput.value.trim()
+        const cant = cantInput.value
+        const precio = precioInput.value
+        if (!desc && !cant && !precio) return
 
-    if (descInput.value || cantInput.value || precioInput.value) {
-      filas.push({
-        desc: descInput.value,
-        cant: cantInput.value,
-        precio: precioInput.value
-      })
-      renderTabla()
+        filas.push({ desc, cant, precio })
+
+        descInput.value = ''
+        cantInput.value = ''
+        precioInput.value = ''
+        descInput.focus()
+
+        renderTabla()
+    })
+
+    btnClearFilas.addEventListener('click', () => {
+        filas = []
+        renderTabla()
+    })
+
+    function renderTabla() {
+        const tablaCont = document.getElementById('tablaPreview')
+        tablaCont.innerHTML = ''
+
+        const table = document.createElement('table')
+        table.innerHTML = `
+            <thead>
+                <tr>
+                    <th class="col-desc">Descripción del tratamiento a realizar</th>
+                    <th class="col-cant">Cantidad</th>
+                    <th class="col-pre">Precio</th>
+                </tr>
+            </thead>
+        `
+
+        const tbody = document.createElement('tbody')
+
+        if (filas.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td class="col-desc">&nbsp;</td>
+                    <td class="col-cant">&nbsp;</td>
+                    <td class="col-pre">&nbsp;</td>
+                </tr>
+            `
+        } else {
+            filas.forEach(f => {
+                const tr = document.createElement('tr')
+                tr.innerHTML = `
+                    <td class="col-desc">${f.desc}</td>
+                    <td class="col-cant">${f.cant}</td>
+                    <td class="col-pre">${f.precio}</td>
+                `
+                tbody.appendChild(tr)
+            })
+        }
+
+        table.appendChild(tbody)
+        tablaCont.appendChild(table)
     }
 
-    outPresupuesto.textContent = "Presupuesto: " + presupuesto.value
-    outFecha.textContent = "Fecha: " + fecha.value
-    outValido.textContent = "Válido hasta: " + valido.value
+    // ---- LIMPIAR FORMULARIO COMPLETO ----
+    document.getElementById("btnClearForm").addEventListener("click", () => {
+        document.getElementById("form").reset()
+        filas = []
+        renderTabla()
+    })
 
-    outDestNombre.textContent = "Nombre: " + destNombre.value
-    outDestTel.textContent = "Teléfono: " + destTel.value
+    // ---- AUTO RELLENAR ----
+    document.getElementById("btnFill").addEventListener("click", () => {
+        presupuesto.value = "254"
+        fecha.value = "28/11/2025"
+        valido.value = "15/12/2025"
+        destNombre.value = "Juan Pérez"
+        destTel.value = "1122334455"
 
-    outTotal.textContent = total.value
-    outEntrega.textContent = entrega.value
-    outSaldo.textContent = saldo.value
-    outCuotas.textContent = cuotas.value
+        filas = [
+            { desc: "Limpieza y desinfección del equipo", cant: "1", precio: "5000" },
+            { desc: "Cambio de repuestos internos", cant: "2", precio: "8000" }
+        ]
 
-    document.getElementById("preview").style.display = "block"
-    document.getElementById("btnPDF").style.display = "inline-block"
-  })
+        total.value   = "21000"
+        entrega.value = "7000"
+        saldo.value   = "14000"
+        cuotas.value  = "3 cuotas de $4700"
 
-  // ---- PDF ----
-  document.getElementById("btnPDF").addEventListener('click', async () => {
-    const { jsPDF } = window.jspdf
-    const preview = document.getElementById("preview")
+        renderTabla()
+    })
 
-    await new Promise(r => setTimeout(r, 50))
+    // ---- GENERAR PREVIEW ----
+    document.getElementById('btnGenerar').addEventListener('click', () => {
 
-    const canvas = await html2canvas(preview, { scale: 2, useCORS: true })
-    const imgData = canvas.toDataURL("image/png")
-    const pdf = new jsPDF("p", "px", [canvas.width, canvas.height])
-    pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height)
-    pdf.save("presupuesto.pdf")
-  })
+        if (descInput.value || cantInput.value || precioInput.value) {
+            filas.push({
+                desc: descInput.value,
+                cant: cantInput.value,
+                precio: precioInput.value
+            })
+            renderTabla()
+        }
+
+        outPresupuesto.textContent = "Presupuesto: " + presupuesto.value
+        outFecha.textContent = "Fecha: " + fecha.value
+        outValido.textContent = "Válido hasta: " + valido.value
+
+        outDestNombre.textContent = "Nombre: " + destNombre.value
+        outDestTel.textContent = "Teléfono: " + destTel.value
+
+        outTotal.textContent = total.value
+        outEntrega.textContent = entrega.value
+        outSaldo.textContent = saldo.value
+        outCuotas.textContent = cuotas.value
+
+        document.getElementById("preview").style.display = "block"
+        document.getElementById("btnPDF").style.display = "inline-block"
+    })
+
+    // ---- PDF ----
+    document.getElementById("btnPDF").addEventListener('click', async () => {
+        const { jsPDF } = window.jspdf
+        const preview = document.getElementById("preview")
+
+        await new Promise(r => setTimeout(r, 50))
+
+        const canvas = await html2canvas(preview, { scale: 2, useCORS: true })
+        const imgData = canvas.toDataURL("image/png")
+        // Como el preview está en dimensiones fijas, el PDF mantiene el tamaño A4 o el que hayas definido
+        const pdf = new jsPDF("p", "px", [canvas.width, canvas.height]) 
+        pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height)
+        pdf.save("presupuesto.pdf")
+    })
 </script>
 
 </body>
