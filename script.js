@@ -141,7 +141,9 @@ document.getElementById('btnGenerar').addEventListener('click', () => {
   document.getElementById("btnPDF").style.display = "inline-block"
 })
 
-// ---- PDF ----
+
+
+// ✅ ---- PDF A4 CORREGIDO ----
 document.getElementById("btnPDF").addEventListener('click', async () => {
   const { jsPDF } = window.jspdf
   const preview = document.getElementById("preview")
@@ -150,7 +152,25 @@ document.getElementById("btnPDF").addEventListener('click', async () => {
 
   const canvas = await html2canvas(preview, { scale: 2, useCORS: true })
   const imgData = canvas.toDataURL("image/png")
-  const pdf = new jsPDF("p", "px", [canvas.width, canvas.height])
-  pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height)
+
+  // Tamaño A4 real en px a ~96 DPI
+  const pdfWidth = 794
+  const pdfHeight = 1123
+
+  const pdf = new jsPDF({
+    orientation: "portrait",
+    unit: "px",
+    format: [pdfWidth, pdfHeight]
+  })
+
+  // Ajuste manteniendo proporción
+  const ratio = Math.min(pdfWidth / canvas.width, pdfHeight / canvas.height)
+  const imgW = canvas.width * ratio
+  const imgH = canvas.height * ratio
+
+  const x = (pdfWidth - imgW) / 2
+  const y = (pdfHeight - imgH) / 2
+
+  pdf.addImage(imgData, "PNG", x, y, imgW, imgH)
   pdf.save("presupuesto.pdf")
 })
