@@ -1,107 +1,110 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generar Presupuesto PDF</title>
+  <meta charset="UTF-8">
+  <title>Generar Presupuesto PDF</title>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- HTML2CANVAS / JSPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <!-- OPEN SANS -->
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="styles.css"> 
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <div id="mainContainer">
 
-    <form id="form">
-        <h2>Formulario del Presupuesto</h2>
+  <!-- ---------------- FORMULARIO ---------------- -->
+  <form id="form">
+    <h2>Formulario del Presupuesto</h2>
 
-        <label>Presupuesto N°:</label>
-        <input type="text" id="presupuesto">
+    <label>Presupuesto N°:</label>
+    <input type="text" id="presupuesto">
 
-        <label>Fecha:</label>
-        <input type="text" id="fecha">
+    <label>Fecha:</label>
+    <input type="text" id="fecha">
 
-        <label>Válido Hasta:</label>
-        <input type="text" id="valido">
+    <label>Válido Hasta:</label>
+    <input type="text" id="valido">
 
-        <label>Nombre Destinatario:</label>
-        <input type="text" id="destNombre">
+    <label>Nombre Destinatario:</label>
+    <input type="text" id="destNombre">
 
-        <label>Teléfono Destinatario:</label>
-        <input type="text" id="destTel">
+    <label>Teléfono Destinatario:</label>
+    <input type="text" id="destTel">
 
-        <h3>Tabla</h3>
+    <h3>Tabla</h3>
 
-        <label>Descripción:</label>
-        <input type="text" id="descInput">
+    <label>Descripción:</label>
+    <input type="text" id="descInput">
 
-        <label>Cantidad:</label>
-        <input type="number" id="cantInput">
+    <label>Cantidad:</label>
+    <input type="number" id="cantInput">
 
-        <label>Precio:</label>
-        <input type="number" id="precioInput">
+    <label>Precio:</label>
+    <input type="number" id="precioInput">
 
-        <button type="button" class="btn-primary" id="btnAdd">+ Agregar fila</button>
-        <button type="button" class="btn-light" id="btnClearFilas">Limpiar filas</button>
+    <button type="button" class="btn-primary" id="btnAdd">+ Agregar fila</button>
+    <button type="button" class="btn-light" id="btnClearFilas">Limpiar filas</button>
 
-        <h3>Totales</h3>
+    <h3>Totales</h3>
 
-        <label>Total:</label>
-        <input type="text" id="total">
+    <label>Total:</label>
+    <input type="text" id="total">
 
-        <label>Entrega:</label>
-        <input type="text" id="entrega">
+    <label>Entrega:</label>
+    <input type="text" id="entrega">
 
-        <label>Saldo:</label>
-        <input type="text" id="saldo">
+    <label>Saldo:</label>
+    <input type="text" id="saldo">
 
-        <label>Cuotas:</label>
-        <input type="text" id="cuotas">
+    <label>Cuotas:</label>
+    <input type="text" id="cuotas">
 
-        <br><br>
+    <br><br>
 
-        <button type="button" class="btn-secondary" id="btnFill">Auto rellenar</button>
-        <button type="button" class="btn-light" id="btnClearForm">Limpiar campos</button>
+    <button type="button" class="btn-secondary" id="btnFill">Auto rellenar</button>
+    <button type="button" class="btn-light" id="btnClearForm">Limpiar campos</button>
 
-        <br><br>
+    <br><br>
 
-        <button type="button" class="btn-primary" id="btnGenerar">Generar vista previa</button>
-        <button id="btnPDF" type="button" class="btn-secondary" style="display:none">Descargar PDF</button>
-    </form>
+    <button type="button" class="btn-primary" id="btnGenerar">Generar vista previa</button>
+    <button id="btnPDF" type="button" class="btn-secondary" style="display:none">Descargar PDF</button>
+  </form>
 
-    <div id="previewWrapper">
-        <div id="preview">
-            <div id="outPresupuesto" class="campo small"></div>
-            <div id="outFecha" class="campo small"></div>
-            <div id="outValido" class="campo small"></div>
+  <!-- ---------------- PREVIEW ---------------- -->
+  <div id="previewWrapper">
+    <div id="preview">
+      <div id="outPresupuesto" class="campo small"></div>
+      <div id="outFecha" class="campo small"></div>
+      <div id="outValido" class="campo small"></div>
 
-            <div id="destLabel">Destinatario:</div>
+      <div id="destLabel">Destinatario:</div>
 
-            <div id="outDestNombre" class="campo normal"></div>
-            <div id="outDestTel" class="campo normal"></div>
+      <div id="outDestNombre" class="campo normal"></div>
+      <div id="outDestTel" class="campo normal"></div>
 
-            <div id="tablaPreview"></div>
+      <div id="tablaPreview"></div>
 
-            <div id="totalesBox">
-                <table>
-                    <tbody>
-                        <tr><td>Total</td><td id="outTotal"></td></tr>
-                        <tr><td>Entrega</td><td id="outEntrega"></td></tr>
-                        <tr><td>Saldo</td><td id="outSaldo"></td></tr>
-                        <tr><td>Cuotas</td><td id="outCuotas"></td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+      <div id="totalesBox">
+        <table>
+          <tbody>
+            <tr><td>Total</td><td id="outTotal"></td></tr>
+            <tr><td>Entrega</td><td id="outEntrega"></td></tr>
+            <tr><td>Saldo</td><td id="outSaldo"></td></tr>
+            <tr><td>Cuotas</td><td id="outCuotas"></td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
+  </div>
 
 </div>
 
 <script src="script.js"></script>
-
 </body>
 </html>
